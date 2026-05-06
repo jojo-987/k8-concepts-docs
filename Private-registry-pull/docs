@@ -1,0 +1,28 @@
+DOCS: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+
+Type1) kubectl create secret generic regcred \
+    --from-file=.dockerconfigjson=<path/to/.docker/config.json> \
+    --type=kubernetes.io/dockerconfigjson
+
+   will not work if creds are stored using docker desktop:
+   {
+    "auths": {
+        "https://index.docker.io/v1/": {}
+    }
+}
+
+2) direct pass the creds using password or pat:
+kubectl create secret docker-registry regcred --docker-server=<your-registry-server> --docker-username=<your-name> --docker-password=<your-pword> --docker-email=<your-email>
+
+# NOTE
+ A docker-registry type secret is for accessing a container registry.
+
+ A generic type secret indicate an Opaque secret type.
+
+ A tls type secret holds TLS certificate and its associated key.
+
+Available Commands:
+  docker-registry   Create a secret for use with a Docker registry
+  generic           Create a secret from a local file, directory, or literal value
+  tls               Create a TLS secret
+

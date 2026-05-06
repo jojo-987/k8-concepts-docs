@@ -1,0 +1,6 @@
+mongodb:
+  uri: "mongodb://mongo-svc:27017"
+
+serviceMonitor:
+  additionalLabels:
+    release: prometheus

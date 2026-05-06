@@ -1,0 +1,10 @@
+nodeName - Simplest way to choose a node
+nodeSelector - To choose nodes by node label
+affinity - For advanced options like Exists, Gt, Lt, In, etc..
+  nodeAffinity - To choose nodes
+  podAffinity - To co-locate pods with pod labels topology Key
+  podAntiAffinity - To keep away pods with pod labels topologyKey
+Taint - Added onto node. Only pods which can tolerate this taint can be scheduled
+  NoSchedule - Hard (Do not schedule pods if they can't tolerate)
+  PreferNoSchedule - Soft (Can be scheduled if no other nodes available)
+  NoExecute - Strict (Delete running pods also if they can't tolerate newly added taint)
