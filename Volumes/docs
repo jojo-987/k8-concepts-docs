@@ -1,0 +1,152 @@
+# Important Things About Volumes:
+# Repo: https://github.com/pelthepu/Kubernetes/tree/master/resources/Volumes
+
+Why We Need Volumes: ( Problem Statements)
+
+1) If a pod in clustor deleted and new pod is created, new pod doesn't know data about old pod and data is lost.
+
+2) Data is not shared across the pods:
+
+Types of Volumes:
+
+To Store Data At Pod Level:
+1) EmptyDir:
+
+This will persist data if container fails and restarted.
+location of this emptyDir: /var/lib/kubelet/pods/podUid/volumes
+
+Problem: Other pods can't access this data and if Pod get crashed data is lost.
+
+Storing in Node:
+
+1) hostPath: 
+Ex: hostPath: 
+      path: /data
+
+problem: Pods on Other node can't access since it is stored on node itself.
+
+
+Persistent Volumes Type:
+1) Persistent Volumes
+2) Persistent Volume Claims
+3) Storage Class
+
+Other Volume Types:
+1) ConfigMap:
+2) Secrets:
+
+1) Persistent Volume:
+
+Main Attributes in spec:
+
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteMany
+  local:(Type of Volume)
+    path: /mnt/disks/ssd1 ( where you want to store data)
+
+Possible values for accessModes: 
+ReadWriteMany (RWX) ( Can be Mounted on Multiple Nodes all the pods on those node can perform read write)
+ReadWriteOnce (RWO) ( Can be Mounted on 1 node all the pods on that node can perform Read Write) 
+ReadOnlyMany (ROX)
+ReadOnlyOnce
+ReadWriteOncePod (RWOP)( Only 1 pod in Cluster can Read and Write)
+
+Not all storage providers support every mode. For instance, many block storage solutions (like AWS EBS or GCP PD) only support RWO, whereas file-based storage (like AWS EFS or Azure Files) often supports RWX.
+
+Docs: https://kubernetes.io/docs/concepts/storage/persistent-volumes/#:~:text=English,kubelet
+
+Q: is there any benefit of using readwriteonce if i have all the pods on same node
+
+You can't use ReadWriteMany (RWX) for everything because it is determined by the underlying storage hardware, not just a setting you choose. 
+
+If your storage (like an AWS EBS disk or a physical hard drive) doesn't support being plugged into multiple servers at once, you must use ReadWriteOnce (RWO).
+
+Even if all your pods are on the same node, there are several reasons why ReadWriteOnce (or its stricter version, ReadWriteOncePod) is usually better than trying to force ReadWriteMany:
+
+1. PerformanceSpeed: RWO typically uses Block Storage (like SSDs), which is much faster than the File Storage (like NFS) required for RWX.Caching: Block storage allows the operating system to cache data in memory efficiently. RWX storage often has to disable or strictly coordinate this caching to prevent data corruption between multiple writers, making it significantly slower.
+2. Hardware and Provider LimitsSupport: Most common cloud disks (AWS EBS, GCP Persistent Disk, Azure Disk) only support RWO. If you try to request RWX on these, the volume will simply fail to provision.Cost: RWX usually requires more expensive managed file services (like AWS EFS or GCP Filestore).
+3. Data Integrity and SecuritySingle-Writer Safety: Databases (like MySQL or Postgres) are designed for a single process to manage the files. If you use RWX and accidentally start two instances of the database on different nodes, they could both write to the same files simultaneously and corrupt your entire database.ReadWriteOncePod (RWOP): If you have multiple pods on the same node and want to ensure only one specific pod can touch the data at a time for maximum safety, you should use ReadWriteOncePod
+
+Use RWO: For databases, high-performance apps, or when using standard cloud disks.
+Use RWX: Only when you have a specific need to share files across pods on different nodes, like a web server sharing a folder of uploaded images
+
+2) Persistent volume Claim:
+
+Main Attributes in spec:
+
+spec: 
+  storageClassName: ""
+  accessModes: 
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 3Gi
+
+note: If a user deletes a PVC in active use by a Pod, the PVC is not removed immediately. PVC removal is postponed until the PVC is no longer actively used by any Pods. Also, if an admin deletes a PV that is bound to a PVC, the PV is not removed immediately. PV removal is postponed until the PV is no longer bound to a PVC.
+
+You can see that a PVC is protected when the PVC's status is Terminating and the Finalizers list includes kubernetes.io/pvc-protection:
+
+kubectl describe pvc hostpath
+Name:          hostpath
+Namespace:     default
+StorageClass:  example-hostpath
+Status:        Terminating
+Volume:
+Labels:        <none>
+Annotations:   volume.beta.kubernetes.io/storage-class=example-hostpath
+               volume.beta.kubernetes.io/storage-provisioner=example.com/hostpath
+Finalizers:    [kubernetes.io/pvc-protection]
+
+You can see that a PV is protected when the PV's status is Terminating and the Finalizers list includes kubernetes.io/pv-protection too:
+
+ReClaimPolicies:
+
+1) Retain: 
+
+The Retain reclaim policy allows for manual reclamation of the resource. When the PersistentVolumeClaim is deleted, the PersistentVolume still exists and the volume is considered "released". But it is not yet available for another claim because the previous claimant's data remains on the volume. An administrator can manually reclaim the volume with the following steps.
+
+Delete the PersistentVolume. The associated storage asset in external infrastructure still exists after the PV is deleted.
+Manually clean up the data on the associated storage asset accordingly.
+Manually delete the associated storage asset.
+If you want to reuse the same storage asset, create a new PersistentVolume with the same storage asset definition.
+
+2) Delete:
+
+Delete
+For volume plugins that support the Delete reclaim policy, deletion removes both the PersistentVolume object from Kubernetes, as well as the associated storage asset in the external infrastructure. Volumes that were dynamically provisioned inherit the reclaim policy of their StorageClass, which defaults to Delete. The administrator should configure the StorageClass according to users' expectations; otherwise, the PV must be edited or patched after it is created. See Change the Reclaim Policy of a PersistentVolume.
+
+3) Recycle
+
+Warning:
+The Recycle reclaim policy is deprecated. Instead, the recommended approach is to use dynamic provisioning.
+If supported by the underlying volume plugin, the Recycle reclaim policy performs a basic scrub (rm -rf /thevolume/*) on the volume and makes it available again for a new claim.
+
+3) Storage Class:
+
+
+
+There is no spec section in storage Class:
+
+ex: 
+apiVersion
+kind:
+metadata:
+provisioner: Nameofstorageprovider 
+volumeBindingMode: Immediate
+reclaimPolicy: Delete ( this is same as explained above)
+
+Possible values of volumeBindingMode:
+
+volume Binding Mode defines how persistent volume is created.
+
+1) Immediate
+  PV is created immediately when pvc is created.
+
+2) WaitForFirstConsumer:
+  pv is not created until pvc is used by any pod.
+
+
+

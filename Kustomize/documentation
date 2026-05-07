@@ -2,7 +2,7 @@
 
 kustomize is configuration management tool for kubernetes. just like ansible is configuration management tool for linux.
 
-
+Base Overlay Architechture:
 
 
 
