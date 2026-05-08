@@ -1,0 +1,26 @@
+Deployment
+1. Used to deploy Stateless applications
+2. All pods are created parallelly
+3. Pods are deleted randomly
+4. Random name is assigned to all pods5. Same PV is used for all pods
+5. Same PV is used for all pods
+6. Scaling is easy
+
+
+Statefulset
+1. Used to deploy Stateful applications
+2. Pods are created one by one
+3. Pods are deleted in reverse order
+4. Sticky and predictable name is assigned to the pods
+5. Different PVs are used for each pod
+6. Scaling is difficult
+
+For SFS:
+Headless service is used:
+
+ex: 
+spec:
+  clusterIP: None
+
+Note: Statefulsets just creates pods, replication ( syncing of data) should be done by admin.
+

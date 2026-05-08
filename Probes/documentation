@@ -1,3 +1,94 @@
+why probes?
+By default, kubernetes only checks if main process is running or not. it does not check if internal functionality is working as expected or not.
+
+types:
+1) Liveness probe:
+2) Readiness probe:
+3) Startup probe:
+
+Different Types of Probing mechanism:
+1) Exec
+ this mechanism is used to execute a command to check if pod is healthy or not.
+
+ Pod will be considered healthy if command executes with status 0
+
+ ex:
+ exec:
+   command:
+     - mongo
+     - --eval
+     - "db.adminCommand('ping')"
+
+2) HTTP
+
+with HTTP, we ask kubernetes to perform a http request to a url ( actuator ).
+
+Healthy if res contains 200-399 status code.
+
+ex: 
+httpGet:
+  path: /health
+  port: 8080
+
+3) TCP
+
+with this, we open a port on container.
+
+Healthy if container accept traffic on given port
+
+Concept: How many times should it retry if command(probing mechanism) should fail 
+
+1) initialDelaySeconds (Default Value = 0sec): how much k8 should wait after container is attached.
+  
+2) periodSeconds (Default Value = 10sec): how frequently probe should be executed after initial delay
+
+if it fails container is restarted.
+
+3) timeoutSeconds (Default Value = 1sec): Timeout period to mark as failure.
+
+4) failure/successThreshold (Default Value = 3times): how many times kubernetes shoud retry in case of failure.
+
+container will only be restarted if probe fails for this number of times
+
+Main Types:
+1) Liveness probe:
+
+livenessProbe is written at container level.
+
+when liveness probe fails K8 keeps Restarting pods until lineness probe success.
+
+Ex: 
+livenessProbe:
+  exec:
+    command:
+      - mongo
+      - --eval
+      - "db.adminCommand('ping')"
+
+2) Readiness Probes:
+
+This Probe identifies when a container can handle external traffic recieved from service.
+
+just like liveness probe we can use readiness probe.
+
+if readiness probe failes k8 remove ip address of pod from endpoints.
+
+ex:
+ReadinessProbe:
+  exec:
+    command:
+      - mongo
+      - --eval
+      - "db.adminCommand('ping')"
+ 
+ 3) Startup probe:
+
+Startup probe provides a way to delay above 2 probe until container can handle that.
+
+if Startup probe fails it follows restart policy and kills the container.
+
+
+
 Best Practices:
 
 Ideal frequency

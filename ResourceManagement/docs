@@ -1,0 +1,40 @@
+#
+
+- Few things about Computing Resources:
+
+1) CPU vs RAM 
+
+CPU:
+Measured a fraction of time
+Ex: 200m(0.2cpu), 1cpu(1000m)
+Compressible
+Throttles
+1 CPU is equal to:
+1 vCPU in AWS
+1 Core in GCP
+1 vCore in Azure
+1 Hyperthread on bare-metal
+
+RAM:
+Measured in Bytes
+Ex: 1KB (1000 bytes), 1KiB (1024 bytes)
+Ex: 1MB (1000 KB), 1MiB (1024 KiB)
+Not Compressible
+Terminates
+
+1) Request and Limits:
+
+Example: 
+resources:
+  requests:
+    memory: "200Mi"
+    cpu: "1"
+  limits:
+    memory: "2Gi"
+    cpu: "1"
+
+request how much minimum resources it need to be scheduled on any node.
+
+limit maximum resource allocation to a pod.
+
+Once the pod is created Resources are not allowed to change you must delete that.
