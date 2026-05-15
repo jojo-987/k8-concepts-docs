@@ -38,3 +38,20 @@ request how much minimum resources it need to be scheduled on any node.
 limit maximum resource allocation to a pod.
 
 Once the pod is created Resources are not allowed to change you must delete that.
+
+Quality of Service:
+
+This class is used to determine which pod should be deleted when resources are limited.
+
+Limit Range Resource:
+
+Limit range validates each pod in namespace: 
+Limit range is used at container/pod level.
+
+ex: limit-range.yaml 
+
+Resource Quota:
+
+Resource Quota is used to limit resources at namespace level.
+
+

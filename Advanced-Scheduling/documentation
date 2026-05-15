@@ -1,9 +1,67 @@
 nodeName - Simplest way to choose a node
+
+Ex: 
+spec:
+  nodeName: minikube-m02
 nodeSelector - To choose nodes by node label
+Ex: 
+spec:
+  nodeSelector:
+    team: Java
+ 
 affinity - For advanced options like Exists, Gt, Lt, In, etc..
+
   nodeAffinity - To choose nodes
+
+   Types of Node Affinity:
+   1) requiredDuringSchedulingIgnoredDuringExecution:
+   
+   ex:
+   spec:
+     nodeAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         nodeSelectorTerms:
+           - matchExpressions:
+               - key: rank
+                 operator: Lt
+                 values:
+                   - "5"
+
+   2) prefferedDuringSchedulingIgnoredDuringExecution:
+
+   ex:
+   spec:
+     nodeAffinity:
+       preferredDuringSchedulingIgnoredDuringExecution:
+         - weight: 40 
+           preference:
+             matchExpressions:
+               key: "team"
+               operator: In
+               values: ["analytics"]
+         - weight: 60
+           preference:
+             matchExpressions:
+               key: rank
+               operator: Lt
+               values:
+                 - "5"
+
   podAffinity - To co-locate pods with pod labels topology Key
   podAntiAffinity - To keep away pods with pod labels topologyKey
+
+  ex: 
+   spec:
+     podAffinity:
+       requiredDuringSchedulingIgnoredDuringExecution:
+         - labelSelector:
+             matchExpressions:
+               - key: app
+                 operator: In
+                 values:
+                   - "todo-ui"
+           topologyKey: kubernetes.io/hostname
+
 Taint - Added onto node. Only pods which can tolerate this taint can be scheduled
   NoSchedule - Hard (Do not schedule pods if they can't tolerate)
   PreferNoSchedule - Soft (Can be scheduled if no other nodes available)
